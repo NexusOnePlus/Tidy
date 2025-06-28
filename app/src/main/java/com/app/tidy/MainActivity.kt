@@ -2,6 +2,7 @@ package com.app.tidy
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.app.tidy.screens.calendar.CalendarScreen
+import com.app.tidy.screens.home.HomeScreen
+import com.app.tidy.screens.settings.SettingsScreen
 import com.app.tidy.tabview.TabBarItem
 import com.app.tidy.tabview.TabView
 import com.app.tidy.ui.theme.TidyTheme
@@ -28,7 +32,12 @@ import com.app.tidy.ui.theme.TidyTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            )
+        )
         setContent {
             val homeTab = TabBarItem(title = "Home", selectedIcon = Icons.Filled.Home, unselectedIcon = Icons.Outlined.Home)
             val calendarTab = TabBarItem(title = "Calendar", selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
@@ -42,13 +51,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(navController = navController, startDestination = homeTab.title, modifier = Modifier.padding(innerPadding)){
                         composable(homeTab.title){
-                            Text(text = "Home")
+                            HomeScreen()
                         }
                         composable(calendarTab.title){
-                            Text(text = "Calendar")
+                            CalendarScreen()
                         }
                         composable(settingsTab.title){
-                            Text(text = "Settings")
+                            SettingsScreen()
                         }
                     }
                 }
