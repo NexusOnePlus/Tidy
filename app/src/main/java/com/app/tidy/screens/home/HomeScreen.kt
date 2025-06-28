@@ -1,6 +1,7 @@
 package com.app.tidy.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,7 +35,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.graphics.toColorInt
 import com.app.tidy.ui.theme.TidyTheme
 
 data class EventItem(
@@ -52,7 +61,7 @@ data class EventItem(
     val date: String,
 )
 
-// @Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun HomeScreen() {
     val events = remember {
@@ -86,11 +95,11 @@ fun HomeScreen() {
             ) {
                 Text(
                     text = "Home",
-                    style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(fontSize = 30.sp)
                 )
                 Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notification")
             }
-            Text(text = "Status", style = TextStyle(fontSize = 20.sp))
+            Text(text = "Status", style = TextStyle(fontSize = 25.sp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -105,16 +114,26 @@ fun HomeScreen() {
                             .weight(1f)
                             .fillMaxHeight()
                             .padding(8.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.LightGray)
+                            .shadow(10.dp, RoundedCornerShape(30.dp))
+                            .clip(RoundedCornerShape(30.dp))
+                            .background(Color("#C5E2FF".toColorInt()))
+                            .border(2.dp, Color("#36A4FF".toColorInt()), RoundedCornerShape(30.dp))
                     ) {
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            Text(text = "$15.00", style = TextStyle(fontSize = 30.sp))
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.Bottom
+                        ) {
+                            Text(
+                                text = "$15.00",
+                                modifier = Modifier.padding(top = 10.dp),
+                                style = TextStyle(fontSize = 40.sp),
+                                color = Color.Blue
+                            )
                             Text(
                                 text = "Gas",
-                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(fontSize = 20.sp)
                             )
-                            Text(text = "May 28")
+                            Text(text = "May 28", color = Color.DarkGray)
                         }
                     }
                     Column(
@@ -127,20 +146,29 @@ fun HomeScreen() {
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .padding(8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.LightGray)
-
+                                .shadow(10.dp, RoundedCornerShape(30.dp))
+                                .clip(RoundedCornerShape(30.dp))
+                                .background(Color("#FF8490".toColorInt()))
+                                .border(
+                                    2.dp,
+                                    Color("#FF0000".toColorInt()),
+                                    RoundedCornerShape(30.dp)
+                                )
                         ) {
                             Row(modifier = Modifier.padding(8.dp)) {
                                 Text(
+                                    color = Color("#EB0C0C".toColorInt()),
                                     text = "1",
                                     textAlign = TextAlign.Center,
-                                    style = TextStyle(fontSize = 30.sp),
-                                    modifier = Modifier.weight(1f)
+                                    style = TextStyle(fontSize = 40.sp),
+                                    modifier = Modifier.weight(1f),
                                 )
-                                Column(modifier = Modifier.weight(2f)) {
-                                    Text(text = "Pending")
-                                    Text(text = "Late")
+                                Column(
+                                    modifier = Modifier.weight(2f),
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(text = "Pending", color = Color("#F61515".toColorInt()))
+                                    Text(text = "Late", color = Color("#F61515".toColorInt()))
                                 }
                             }
                         }
@@ -149,19 +177,32 @@ fun HomeScreen() {
                                 .weight(1f)
                                 .fillMaxWidth()
                                 .padding(8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.LightGray)
+                                .shadow(10.dp, RoundedCornerShape(30.dp))
+                                .clip(RoundedCornerShape(30.dp))
+                                .background(Color("#FFF8E8".toColorInt()))
+                                .border(
+                                    2.dp,
+                                    Color("#F9B75B".toColorInt()),
+                                    RoundedCornerShape(30.dp)
+                                )
                         ) {
                             Row(modifier = Modifier.padding(8.dp)) {
                                 Text(
+                                    color = Color("#E3BB17".toColorInt()),
                                     text = "3",
                                     textAlign = TextAlign.Center,
-                                    style = TextStyle(fontSize = 30.sp),
+                                    style = TextStyle(fontSize = 40.sp),
                                     modifier = Modifier.weight(1f)
                                 )
-                                Column(modifier = Modifier.weight(2f)) {
-                                    Text(text = "pending")
-                                    Text(text = "this month")
+                                Column(
+                                    modifier = Modifier.weight(2f),
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = "pending",
+                                        color = Color("#C0A20D".toColorInt()),
+                                    )
+                                    Text(text = "this month", color = Color("#C0A20D".toColorInt()))
                                 }
 
                             }
@@ -199,9 +240,12 @@ fun EventItemComponent(event: EventItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .fillMaxHeight()
             // .padding(horizontal = 12.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.Gray),
+            .shadow(2.dp, RoundedCornerShape(30.dp))
+            .clip(RoundedCornerShape(30.dp))
+            .background(Color("#F0F0F0".toColorInt())),
+
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -213,11 +257,11 @@ fun EventItemComponent(event: EventItem) {
     }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun Preview(){
+fun Preview() {
     MinimalDialog(
-        onAdd = {title, price, description, place, date ->
+        onAdd = { title, price, description, place, date ->
 
         }
     )
@@ -280,11 +324,11 @@ fun MinimalDialog(
                     label = { Text("Date") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
-                Row (
+                Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
-                ){
-                    TextButton(onClick = onDismissRequest ) {
+                ) {
+                    TextButton(onClick = onDismissRequest) {
                         Text(text = "Cancel")
                     }
                     TextButton(onClick = {
