@@ -43,27 +43,72 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.app.tidy.screens.calendar.MinimalDialog
 import com.app.tidy.ui.theme.TidyTheme
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 data class EventItem(
     val title: String,
     val price: Double,
     val description: String,
     val place: String,
-    val date: String,
+    val date: LocalDate,
+    var isDone: Boolean = false
 )
 
 @Preview(showBackground = true)
 @Composable
 fun HomeScreen() {
+    val formatter = DateTimeFormatter.ISO_LOCAL_DATE
     val events = remember {
         mutableStateListOf(
-            EventItem("Evento 1", 100.0, "Descripción del evento 1", "Lugar 1", "Fecha"),
-            EventItem("Evento 2", 200.0, "Descripción del evento 2", "Lugar 2", "Fecha"),
-            EventItem("Evento 3", 300.0, "Descripción del evento 3", "Lugar 3", "Fecha"),
+            EventItem(
+                "Evento 1",
+                100.0,
+                "Descripción del evento 1",
+                "Lugar 1",
+                LocalDate.parse("2025-05-28", formatter)
+            ),
+            EventItem(
+                "Evento 2",
+                200.0,
+                "Descripción del evento 2",
+                "Lugar 2",
+                LocalDate.parse("2025-06-28", formatter)
+            ),
+            EventItem(
+                "Evento 3",
+                300.0,
+                "Descripción del evento 3",
+                "Lugar 3",
+                LocalDate.parse("2025-05-29", formatter)
+            ),
         )
     }
     var showDialog by remember { mutableStateOf(false) }
 
+    val today = remember { LocalDate.now() }
+
+    val pastEvents = events.filter { it.date.isBefore(today) && !it.isDone }
+
+
+    val thisMonthEvents = remember(events, today) {
+        events.filter {
+            (it.date.isEqual(today) || it.date.isAfter(today)) &&
+                    it.date.month == today.month &&
+                    it.date.year == today.year
+            !it.isDone
+        }
+    }
+    val displayFormatter = DateTimeFormatter.ofPattern("MMM d")
+
+    val nextEvents =
+        events.filter { !it.isDone && (it.date.isEqual(today) || it.date.isAfter(today)) }
+
+    val nextEvent = remember(events, today) {
+        thisMonthEvents.minByOrNull { it.date }
+            ?: events.filter { it.date.isAfter(today) }
+                .minByOrNull { it.date }
+    }
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -104,7 +149,7 @@ fun HomeScreen() {
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .padding(8.dp)
+                            .padding(vertical = 8.dp)
                             .shadow(10.dp, RoundedCornerShape(30.dp))
                             .clip(RoundedCornerShape(30.dp))
                             .background(Color("#C5E2FF".toColorInt()))
@@ -115,16 +160,20 @@ fun HomeScreen() {
                             verticalArrangement = Arrangement.Bottom
                         ) {
                             Text(
-                                text = "$15.00",
+                                text = nextEvent?.let { "\$%.2f".format(it.price) } ?: "\$0.00",
                                 modifier = Modifier.padding(top = 10.dp),
-                                style = TextStyle(fontSize = 40.sp),
+                                style = TextStyle(fontSize = 38.sp),
                                 color = Color.Blue
                             )
                             Text(
-                                text = "Gas",
+                                text =
+                                    (nextEvent?.title ?: "Agua"),
                                 style = TextStyle(fontSize = 20.sp)
                             )
-                            Text(text = "May 28", color = Color.DarkGray)
+                            Text(
+                                text = nextEvent?.date?.format(displayFormatter) ?: "",
+                                color = Color.DarkGray
+                            )
                         }
                     }
                     Column(
@@ -149,7 +198,7 @@ fun HomeScreen() {
                             Row(modifier = Modifier.padding(8.dp)) {
                                 Text(
                                     color = Color("#EB0C0C".toColorInt()),
-                                    text = "1",
+                                    text = pastEvents.size.toString(),
                                     textAlign = TextAlign.Center,
                                     style = TextStyle(fontSize = 40.sp),
                                     modifier = Modifier.weight(1f),
@@ -180,7 +229,7 @@ fun HomeScreen() {
                             Row(modifier = Modifier.padding(8.dp)) {
                                 Text(
                                     color = Color("#E3BB17".toColorInt()),
-                                    text = "3",
+                                    text = thisMonthEvents.size.toString(),
                                     textAlign = TextAlign.Center,
                                     style = TextStyle(fontSize = 40.sp),
                                     modifier = Modifier.weight(1f)
@@ -232,6 +281,8 @@ fun EventItemList(eventList: List<EventItem>, modifier: Modifier) {
 @Composable
 fun EventItemComponent(event: EventItem) {
     var isCheckedState by remember { mutableStateOf(false) }
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -249,8 +300,8 @@ fun EventItemComponent(event: EventItem) {
                 style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = event.price.toString())
-                Text(text = event.date)
+                Text(text = "\$${"%.2f".format(event.price)}")
+                Text(text = "${event.date.format(formatter)}")
             }
         }
         Column(modifier = Modifier.padding(end = 12.dp)) {
@@ -289,7 +340,6 @@ fun RoundedCheckboxButton(
         }
     }
 }
-
 
 
 enum class EventType {

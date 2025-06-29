@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.app.tidy.screens.home.EventType
 import java.text.SimpleDateFormat
-import java.util.Date
-
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
 
@@ -60,7 +62,7 @@ fun Preview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MinimalDialog(
-    onAdd: (title: String, price: Double, description: String, place: String, date: String) -> Unit,
+    onAdd: (title: String, price: Double, description: String, place: String, date: LocalDate) -> Unit,
     onDismissRequest: () -> Unit = {}
 ) {
     var title by remember { mutableStateOf("") }
@@ -72,9 +74,16 @@ fun MinimalDialog(
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
-    val dataFormatter = remember { SimpleDateFormat("dd/MM/yyyy")}
-    var date by remember { mutableStateOf("") }
+
+
+    var date by remember { mutableStateOf(LocalDate.now()) }
+    val dataFormatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy")}
+    var displayDate by remember { mutableStateOf(date.format(dataFormatter)) }
+
     var selectedEventType by remember { mutableStateOf(EventType.NORMAL) }
+
+
+
     val eventTypes = EventType.values()
 
 
@@ -86,7 +95,11 @@ fun MinimalDialog(
                     onClick = {
                         showDatePickerDialog = false
                         datePickerState.selectedDateMillis?.let { millis ->
-                            date = dataFormatter.format(Date(millis))
+                            date = Instant
+                                .ofEpochMilli(millis)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate()
+                            displayDate = date.format(dataFormatter)
                         }
                     }
                 ) { Text("OK") }
@@ -142,7 +155,7 @@ fun MinimalDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
                 OutlinedTextField(
-                    value = date,
+                    value = displayDate,
                     onValueChange = { },
                     label = { Text("Date") },
                     placeholder = { Text("Select Date") },
