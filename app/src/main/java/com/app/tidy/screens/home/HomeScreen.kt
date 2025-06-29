@@ -2,30 +2,42 @@ package com.app.tidy.screens.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Card
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -43,15 +55,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.graphics.toColorInt
 import com.app.tidy.ui.theme.TidyTheme
+import java.text.SimpleDateFormat
+import java.util.Date
+import kotlin.text.format
 
 data class EventItem(
     val title: String,
@@ -61,7 +78,6 @@ data class EventItem(
     val date: String,
 )
 
-@Preview(showBackground = true)
 @Composable
 fun HomeScreen() {
     val events = remember {
@@ -86,7 +102,7 @@ fun HomeScreen() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .padding(contentPadding)
-                .padding(horizontal = 12.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -227,7 +243,10 @@ fun HomeScreen() {
 
 @Composable
 fun EventItemList(eventList: List<EventItem>, modifier: Modifier) {
-    LazyColumn(modifier = Modifier, verticalArrangement = Arrangement.spacedBy(8.dp))
+    LazyColumn(
+        modifier = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    )
     {
         items(eventList) { event ->
             EventItemComponent(event)
@@ -237,27 +256,66 @@ fun EventItemList(eventList: List<EventItem>, modifier: Modifier) {
 
 @Composable
 fun EventItemComponent(event: EventItem) {
+    var isCheckedState by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            // .padding(horizontal = 12.dp)
             .shadow(2.dp, RoundedCornerShape(30.dp))
             .clip(RoundedCornerShape(30.dp))
-            .background(Color("#F0F0F0".toColorInt())),
-
+            .background(Color("#F0F0F0".toColorInt()))
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(text = event.title)
-            Text(text = event.description)
-            Text(text = event.date)
+            Text(
+                text = event.title,
+                style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = event.price.toString())
+                Text(text = event.date)
+            }
         }
-
+        Column(modifier = Modifier.padding(end = 12.dp)) {
+            RoundedCheckboxButton(
+                isChecked = isCheckedState, onCheckedChange = {
+                    isCheckedState = it
+                }
+            )
+        }
     }
 }
 
-//@Preview(showBackground = true)
+@Composable
+fun RoundedCheckboxButton(
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(10.dp))
+
+            .background(Color.LightGray)
+            .clickable { onCheckedChange(!isChecked) },
+        contentAlignment = Alignment.Center
+    ) {
+        if (isChecked) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .padding(2.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.DarkGray)
+            )
+        }
+    }
+}
+
+
+@Preview(showBackground = true)
 @Composable
 fun Preview() {
     MinimalDialog(
@@ -268,6 +326,11 @@ fun Preview() {
 }
 
 
+enum class EventType {
+    NORMAL, TIMER, CUSTOM
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MinimalDialog(
     onAdd: (title: String, price: Double, description: String, place: String, date: String) -> Unit,
@@ -277,7 +340,40 @@ fun MinimalDialog(
     var price by remember { mutableStateOf(0) }
     var description by remember { mutableStateOf("") }
     var place by remember { mutableStateOf("") }
+
+    var showDatePickerDialog by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis()
+    )
+    val dataFormatter = remember { SimpleDateFormat("dd/MM/yyyy")}
     var date by remember { mutableStateOf("") }
+    var selectedEventType by remember { mutableStateOf(EventType.NORMAL) }
+    val eventTypes = EventType.values()
+
+
+    if (showDatePickerDialog) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePickerDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDatePickerDialog = false
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            date = dataFormatter.format(Date(millis))
+                        }
+                    }
+                ) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDatePickerDialog = false }
+                ) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
             modifier = Modifier
@@ -320,10 +416,52 @@ fun MinimalDialog(
                 )
                 OutlinedTextField(
                     value = date,
-                    onValueChange = { date = it },
+                    onValueChange = { },
                     label = { Text("Date") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    placeholder = { Text("Select Date") },
+                    readOnly = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { showDatePickerDialog = true }),
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePickerDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = "Select Date"
+                            )
+                        }
+                    }
                 )
+
+                Text(text = "Type")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                ) {
+                    eventTypes.forEach { eventType ->
+                        val isSelected = eventType == selectedEventType
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.LightGray)
+                                .clickable(onClick = { selectedEventType = eventType })
+                                .padding(vertical = 10.dp, horizontal = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ){
+                            Text(
+                                text = eventType.name.lowercase().capitalize(),
+                                color = Color.White,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
