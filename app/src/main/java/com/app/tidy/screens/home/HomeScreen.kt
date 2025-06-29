@@ -101,8 +101,6 @@ fun HomeScreen() {
     }
     val displayFormatter = DateTimeFormatter.ofPattern("MMM d")
 
-    val nextEvents =
-        events.filter { !it.isDone && (it.date.isEqual(today) || it.date.isAfter(today)) }
 
     val nextEvent = remember(events, today) {
         thisMonthEvents.minByOrNull { it.date }
@@ -160,7 +158,7 @@ fun HomeScreen() {
                             verticalArrangement = Arrangement.Bottom
                         ) {
                             Text(
-                                text = nextEvent?.let { "\$%.2f".format(it.price) } ?: "\$0.00",
+                                text = nextEvent?.let { "$%.2f".format(it.price) } ?: "$0.00",
                                 modifier = Modifier.padding(top = 10.dp),
                                 style = TextStyle(fontSize = 38.sp),
                                 color = Color.Blue
@@ -300,7 +298,7 @@ fun EventItemComponent(event: EventItem) {
                 style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp)
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = "\$${"%.2f".format(event.price)}")
+                Text(text = "$${"%.2f".format(event.price)}")
                 Text(text = "${event.date.format(formatter)}")
             }
         }
